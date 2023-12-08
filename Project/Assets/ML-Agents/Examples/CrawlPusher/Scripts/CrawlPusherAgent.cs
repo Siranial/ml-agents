@@ -74,12 +74,14 @@ public class CrawlPusherAgent : Agent
 
     //The block to be pushed to the goal.
     [Header("Block to Push Towards Goal")]
-    public GameObject block;
+    //public GameObject block;
+    public Transform block_transform;
 
     public override void Initialize()
     {
         SpawnTarget(TargetPrefab, transform.position); //spawn target
-        Instantiate(block, GetRandomSpawnPos(), Quaternion.identity); //spawn block
+        //Instantiate(block, GetRandomSpawnPos(), Quaternion.identity); //spawn block
+        //block_transform.localPosition = GetRandomSpawnPos();
         //ResetBlock(); //Reset block
 
         m_OrientationCube = GetComponentInChildren<OrientationCubeController>();
@@ -109,7 +111,8 @@ public class CrawlPusherAgent : Agent
         {
             var randomPosX = Random.Range(-40.0f, 40.0f);
             var randomPosZ = Random.Range(-40.0f, 40.0f);
-            randomSpawnPos = ground.transform.position + new Vector3(randomPosX, 1.5f, randomPosZ);
+            //randomSpawnPos = ground.transform.position + new Vector3(randomPosX, 1.5f, randomPosZ);
+            randomSpawnPos = new Vector3(randomPosX, 2.0f, randomPosZ);
             if (Physics.CheckBox(randomSpawnPos, new Vector3(2.5f, 0.01f, 2.5f)) == false)
             {
                 foundNewSpawnLocation = true;
@@ -133,6 +136,7 @@ public class CrawlPusherAgent : Agent
     /// </summary>
     public override void OnEpisodeBegin()
     {
+        block_transform.localPosition = GetRandomSpawnPos();
         foreach (var bodyPart in m_JdController.bodyPartsDict.Values)
         {
             bodyPart.Reset(bodyPart);
@@ -189,10 +193,10 @@ public class CrawlPusherAgent : Agent
         sensor.AddObservation(m_OrientationCube.transform.InverseTransformPoint(m_Target.transform.position));
 
         //Add pos of block relative to orientation cube
-        sensor.AddObservation(m_OrientationCube.transform.InverseTransformPoint(block.transform.position));
+        sensor.AddObservation(m_OrientationCube.transform.InverseTransformPoint(block_transform.position));
 
         //Add pos of target relative to block
-        sensor.AddObservation(block.transform.InverseTransformPoint(m_Target.transform.position));
+        sensor.AddObservation(block_transform.InverseTransformPoint(m_Target.transform.position));
 
         RaycastHit hit;
         float maxRaycastDist = 10;
@@ -278,7 +282,8 @@ public class CrawlPusherAgent : Agent
     /// </summary>
     void UpdateOrientationObjects()
     {
-        m_OrientationCube.UpdateOrientation(body, m_Target);
+        /// Point to the block instead of m_Target
+        m_OrientationCube.UpdateOrientation(body, block_transform);
         if (m_DirectionIndicator)
         {
             m_DirectionIndicator.MatchOrientation(m_OrientationCube.transform);
