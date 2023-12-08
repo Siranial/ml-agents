@@ -74,13 +74,13 @@ public class CrawlPusherAgent : Agent
 
     //The block to be pushed to the goal.
     [Header("Block to Push Towards Goal")]
-    public GameObject block;
+    public Transform blockPrefab;
+    private Transform m_Block; //Block the agent will push towards during training.
 
     public override void Initialize()
     {
         SpawnTarget(TargetPrefab, transform.position); //spawn target
-        Instantiate(block, GetRandomSpawnPos(), Quaternion.identity); //spawn block
-        //ResetBlock(); //Reset block
+        m_Block = Instantiate(blockPrefab, GetRandomSpawnPos(), Quaternion.identity, transform.parent); //spawn block
 
         m_OrientationCube = GetComponentInChildren<OrientationCubeController>();
         m_DirectionIndicator = GetComponentInChildren<DirectionIndicator>();
@@ -138,9 +138,6 @@ public class CrawlPusherAgent : Agent
             bodyPart.Reset(bodyPart);
         }
 
-        //Reset the block to be pushed
-        //ResetBlock();
-
         //Random start rotation to help generalize
         body.rotation = Quaternion.Euler(0, Random.Range(0.0f, 360.0f), 0);
 
@@ -189,10 +186,10 @@ public class CrawlPusherAgent : Agent
         sensor.AddObservation(m_OrientationCube.transform.InverseTransformPoint(m_Target.transform.position));
 
         //Add pos of block relative to orientation cube
-        sensor.AddObservation(m_OrientationCube.transform.InverseTransformPoint(block.transform.position));
+        //sensor.AddObservation(m_OrientationCube.transform.InverseTransformPoint(m_Block.transform.position));
 
         //Add pos of target relative to block
-        sensor.AddObservation(block.transform.InverseTransformPoint(m_Target.transform.position));
+        //sensor.AddObservation(m_Block.transform.InverseTransformPoint(m_Target.transform.position));
 
         RaycastHit hit;
         float maxRaycastDist = 10;
