@@ -142,8 +142,8 @@ public class CrawlPusherAgent : Agent
     /// </summary>
     public override void OnEpisodeBegin()
     {
-        //block_transform.localPosition = GetRandomSpawnPos();
-        block_transform.localPosition = m_Target.transform.localPosition;
+        block_transform.localPosition = GetRandomSpawnPos();
+        //block_transform.localPosition = m_Target.transform.localPosition;
         foreach (var bodyPart in m_JdController.bodyPartsDict.Values)
         {
             bodyPart.Reset(bodyPart);
