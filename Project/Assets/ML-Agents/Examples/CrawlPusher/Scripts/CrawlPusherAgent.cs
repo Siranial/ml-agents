@@ -36,7 +36,7 @@ public class CrawlPusherAgent : Agent
     //The direction an agent will walk during training.
     [Header("Target To Walk Towards")]
     public Transform TargetPrefab; //Target prefab to use in Dynamic envs
-    private Transform m_Target; //Target the agent will walk towards during training.
+    private GameObject m_Target; //Target the agent will walk towards during training.
 
     [Header("Body Parts")][Space(10)] public Transform body;
     public Transform leg0Upper;
@@ -67,10 +67,13 @@ public class CrawlPusherAgent : Agent
     public Material groundedMaterial;
     public Material unGroundedMaterial;
 
+    [HideInInspector]
+    public TargetController_CrawlerPusher goalDetect;
+
 
     //The ground object
     [Header("The Ground Object")]
-    public GameObject ground;
+    public TargetController_CrawlerPusher ground;
 
     //The block to be pushed to the goal.
     [Header("Block to Push Towards Goal")]
@@ -79,7 +82,10 @@ public class CrawlPusherAgent : Agent
 
     public override void Initialize()
     {
-        SpawnTarget(TargetPrefab, transform.position); //spawn target
+        SpawnTarget(TargetPrefab, transform.position);
+        goalDetect = m_Target.GetComponent<TargetController_CrawlerPusher>();
+        goalDetect.agent = this;
+        //spawn target
         //Instantiate(block, GetRandomSpawnPos(), Quaternion.identity); //spawn block
         //block_transform.localPosition = GetRandomSpawnPos();
         //ResetBlock(); //Reset block
@@ -128,7 +134,7 @@ public class CrawlPusherAgent : Agent
     /// <param name="pos"></param>
     void SpawnTarget(Transform prefab, Vector3 pos)
     {
-        m_Target = Instantiate(prefab, pos, Quaternion.identity, transform.parent);
+        m_Target = Instantiate(prefab, pos, Quaternion.identity, transform.parent).gameObject;
     }
 
     /// <summary>
@@ -136,7 +142,8 @@ public class CrawlPusherAgent : Agent
     /// </summary>
     public override void OnEpisodeBegin()
     {
-        block_transform.localPosition = GetRandomSpawnPos();
+        //block_transform.localPosition = GetRandomSpawnPos();
+        block_transform.localPosition = m_Target.transform.localPosition;
         foreach (var bodyPart in m_JdController.bodyPartsDict.Values)
         {
             bodyPart.Reset(bodyPart);
@@ -283,7 +290,7 @@ public class CrawlPusherAgent : Agent
     void UpdateOrientationObjects()
     {
         /// Point to the block instead of m_Target
-        m_OrientationCube.UpdateOrientation(body, block_transform);
+        m_OrientationCube.UpdateOrientation(body, m_Target.transform);
         if (m_DirectionIndicator)
         {
             m_DirectionIndicator.MatchOrientation(m_OrientationCube.transform);
@@ -325,6 +332,11 @@ public class CrawlPusherAgent : Agent
         return Mathf.Pow(1 - Mathf.Pow(velDeltaMagnitude / TargetWalkingSpeed, 2), 2);
     }
 
+    public void Missin_Complete()
+    {
+        EndEpisode();
+    }
+
     /// <summary>
     /// Agent touched the target
     /// </summary>
@@ -332,4 +344,6 @@ public class CrawlPusherAgent : Agent
     {
         AddReward(1f);
     }
+
+
 }

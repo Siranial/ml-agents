@@ -3164,7 +3164,7 @@ MonoBehaviour:
   hasUpgradedFromAgentParameters: 1
   MaxStep: 5000
   m_TargetWalkingSpeed: 15
-  TargetPrefab: {fileID: 3839136118347789758, guid: 46734abd0de454192b407379c6a4ab8d,
+  TargetPrefab: {fileID: 3839136118347789758, guid: f044fe07d93d0a64a8b6c8175c5c25c3,
     type: 3}
   body: {fileID: 4845971001588102148}
   leg0Upper: {fileID: 4845971001327157979}
