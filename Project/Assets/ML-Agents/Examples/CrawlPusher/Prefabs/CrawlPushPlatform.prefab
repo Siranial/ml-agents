@@ -610,7 +610,24 @@ PrefabInstance:
     - target: {fileID: -8132250662580739399, guid: f63f6ac46d3b8ab40bf927c6a1ec540c,
         type: 3}
       propertyPath: MaxStep
-      value: 5000
+      value: 10000
+      objectReference: {fileID: 0}
+    - target: {fileID: -8132250662580739399, guid: f63f6ac46d3b8ab40bf927c6a1ec540c,
+        type: 3}
+      propertyPath: TargetPrefab
+      value: 
+      objectReference: {fileID: 3839136118347789758, guid: f5a8390867d90e847a5f9f060ae5ce13,
+        type: 3}
+    - target: {fileID: 2864902974773876700, guid: f63f6ac46d3b8ab40bf927c6a1ec540c,
+        type: 3}
+      propertyPath: targetToLookAt
+      value: 
+      objectReference: {fileID: 3839136118347789758, guid: f5a8390867d90e847a5f9f060ae5ce13,
+        type: 3}
+    - target: {fileID: 4845971001588102145, guid: f63f6ac46d3b8ab40bf927c6a1ec540c,
+        type: 3}
+      propertyPath: m_Mass
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 4845971001715176648, guid: f63f6ac46d3b8ab40bf927c6a1ec540c,
         type: 3}

@@ -1216,6 +1216,16 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3421283061859478274, guid: 8928f12cdd1b06d45b2755fb6fefe00b,
+        type: 3}
+      propertyPath: m_Mass
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 3421283061859478274, guid: 8928f12cdd1b06d45b2755fb6fefe00b,
+        type: 3}
+      propertyPath: m_IsKinematic
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3421283061859478285, guid: 8928f12cdd1b06d45b2755fb6fefe00b,
         type: 3}
       propertyPath: m_Name

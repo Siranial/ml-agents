@@ -56,6 +56,9 @@ public class CrawlPusherAgent : Agent
     DirectionIndicator m_DirectionIndicator;
     JointDriveController m_JdController;
 
+    OrientationCubeController m_OrientationCubeBlock;
+    DirectionIndicator m_DirectionIndicatorBlock;
+
     [Header("Foot Grounded Visualization")]
     [Space(10)]
     public bool useFootGroundedVisualization;
@@ -76,15 +79,20 @@ public class CrawlPusherAgent : Agent
     [Header("Block to Push Towards Goal")]
     public Transform blockPrefab;
     private Transform m_Block; //Block the agent will push towards during training.
+    private Vector3 blockStartPos;
 
     public override void Initialize()
     {
         SpawnTarget(TargetPrefab, transform.position); //spawn target
         m_Block = Instantiate(blockPrefab, GetRandomSpawnPos(), Quaternion.identity, transform.parent); //spawn block
+        blockStartPos = m_Block.transform.position;
 
         m_OrientationCube = GetComponentInChildren<OrientationCubeController>();
         m_DirectionIndicator = GetComponentInChildren<DirectionIndicator>();
         m_JdController = GetComponent<JointDriveController>();
+
+        m_OrientationCubeBlock = GetComponentInChildren<OrientationCubeController>();
+        m_DirectionIndicatorBlock = GetComponentInChildren<DirectionIndicator>();
 
         //Setup each body part
         m_JdController.SetupBodyPart(body);
@@ -107,8 +115,8 @@ public class CrawlPusherAgent : Agent
         var randomSpawnPos = Vector3.zero;
         while (foundNewSpawnLocation == false)
         {
-            var randomPosX = Random.Range(-40.0f, 40.0f);
-            var randomPosZ = Random.Range(-40.0f, 40.0f);
+            var randomPosX = Random.Range(-30.0f, 30.0f);
+            var randomPosZ = Random.Range(-30.0f, 30.0f);
             randomSpawnPos = ground.transform.position + new Vector3(randomPosX, 1.5f, randomPosZ);
             if (Physics.CheckBox(randomSpawnPos, new Vector3(2.5f, 0.01f, 2.5f)) == false)
             {
@@ -145,6 +153,9 @@ public class CrawlPusherAgent : Agent
 
         //Set our goal walking speed
         TargetWalkingSpeed = Random.Range(0.1f, m_maxWalkingSpeed);
+
+        m_Block.transform.position = GetRandomSpawnPos();
+        blockStartPos = m_Block.transform.position;
     }
 
     /// <summary>
@@ -167,6 +178,7 @@ public class CrawlPusherAgent : Agent
     public override void CollectObservations(VectorSensor sensor)
     {
         var cubeForward = m_OrientationCube.transform.forward;
+        var blockForward = m_OrientationCubeBlock.transform.forward;
 
         //velocity we want to match
         var velGoal = cubeForward * TargetWalkingSpeed;
@@ -186,10 +198,10 @@ public class CrawlPusherAgent : Agent
         sensor.AddObservation(m_OrientationCube.transform.InverseTransformPoint(m_Target.transform.position));
 
         //Add pos of block relative to orientation cube
-        //sensor.AddObservation(m_OrientationCube.transform.InverseTransformPoint(m_Block.transform.position));
+        sensor.AddObservation(m_OrientationCubeBlock.transform.InverseTransformPoint(m_Block.transform.position));
 
         //Add pos of target relative to block
-        //sensor.AddObservation(m_Block.transform.InverseTransformPoint(m_Target.transform.position));
+        sensor.AddObservation(m_Block.transform.InverseTransformPoint(m_Target.transform.position));
 
         RaycastHit hit;
         float maxRaycastDist = 10;
@@ -256,18 +268,21 @@ public class CrawlPusherAgent : Agent
                 : unGroundedMaterial;
         }
 
+        //Direction to goal
         var cubeForward = m_OrientationCube.transform.forward;
+        //Direction to block
+        var blockForward = m_OrientationCubeBlock.transform.forward;
 
-        // Set reward for this step according to mixture of the following elements.
-        // a. Match target speed
-        //This reward will approach 1 if it matches perfectly and approach zero as it deviates
-        var matchSpeedReward = GetMatchingVelocityReward(cubeForward * TargetWalkingSpeed, GetAvgVelocity());
+        //Reward agent for proximity to block
+        var agentDistToBlockReward = Mathf.Clamp(8f - Vector3.Distance(m_Block.transform.position, m_OrientationCube.transform.position), 0f, 1f);
 
-        // b. Rotation alignment with target direction.
-        //This reward will approach 1 if it faces the target direction perfectly and approach zero as it deviates
-        var lookAtTargetReward = (Vector3.Dot(cubeForward, body.forward) + 1) * .5F;
+        //Reward agent for alignment with block-to-target vector
+        var directionCorrection = (Vector3.Dot(cubeForward, blockForward) + 1) * .5F;
 
-        AddReward(matchSpeedReward * lookAtTargetReward);
+        //Reward  agent for moving block to goal with punishment for wrong way
+        var blockDistToTargetReward = Mathf.Clamp(2f*(1f - (Vector3.Distance(m_Block.transform.position, m_Target.transform.position) / Vector3.Distance(blockStartPos, m_Target.transform.position))), 0f, 2f);
+
+        AddReward(directionCorrection * (agentDistToBlockReward + blockDistToTargetReward));
     }
 
     /// <summary>
@@ -275,10 +290,17 @@ public class CrawlPusherAgent : Agent
     /// </summary>
     void UpdateOrientationObjects()
     {
+        //Orientation towards goal
         m_OrientationCube.UpdateOrientation(body, m_Target);
         if (m_DirectionIndicator)
         {
             m_DirectionIndicator.MatchOrientation(m_OrientationCube.transform);
+        }
+        //Orientation towards block to push
+        m_OrientationCubeBlock.UpdateOrientation(body, m_Block);
+        if (m_DirectionIndicatorBlock)
+        {
+            m_DirectionIndicatorBlock.MatchOrientation(m_OrientationCubeBlock.transform);
         }
     }
 
@@ -318,10 +340,11 @@ public class CrawlPusherAgent : Agent
     }
 
     /// <summary>
-    /// Agent touched the target
+    /// Agent got block to target
     /// </summary>
     public void TouchedTarget()
     {
-        AddReward(1f);
+        AddReward(1000f);
+        blockStartPos = m_Block.transform.position;
     }
 }
