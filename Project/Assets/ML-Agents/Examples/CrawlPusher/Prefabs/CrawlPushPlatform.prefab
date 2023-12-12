@@ -610,29 +610,111 @@ PrefabInstance:
     - target: {fileID: -8132250662580739399, guid: f63f6ac46d3b8ab40bf927c6a1ec540c,
         type: 3}
       propertyPath: MaxStep
-      value: 10000
+      value: 5000
       objectReference: {fileID: 0}
+    - target: {fileID: -8132250662580739399, guid: f63f6ac46d3b8ab40bf927c6a1ec540c,
+        type: 3}
+      propertyPath: m_Block
+      value: 
+      objectReference: {fileID: 671402259133276537, guid: c6f392706c4339143a2d48f8faf5c877,
+        type: 3}
     - target: {fileID: -8132250662580739399, guid: f63f6ac46d3b8ab40bf927c6a1ec540c,
         type: 3}
       propertyPath: TargetPrefab
       value: 
       objectReference: {fileID: 3839136118347789758, guid: f5a8390867d90e847a5f9f060ae5ce13,
         type: 3}
+    - target: {fileID: 1344939600379071643, guid: f63f6ac46d3b8ab40bf927c6a1ec540c,
+        type: 3}
+      propertyPath: targetToLookAt
+      value: 
+      objectReference: {fileID: 0}
     - target: {fileID: 2864902974773876700, guid: f63f6ac46d3b8ab40bf927c6a1ec540c,
         type: 3}
       propertyPath: targetToLookAt
       value: 
       objectReference: {fileID: 3839136118347789758, guid: f5a8390867d90e847a5f9f060ae5ce13,
         type: 3}
+    - target: {fileID: 4845971000566026489, guid: f63f6ac46d3b8ab40bf927c6a1ec540c,
+        type: 3}
+      propertyPath: m_TagString
+      value: Untagged
+      objectReference: {fileID: 0}
+    - target: {fileID: 4845971000566026492, guid: f63f6ac46d3b8ab40bf927c6a1ec540c,
+        type: 3}
+      propertyPath: m_IsTrigger
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4845971000943818050, guid: f63f6ac46d3b8ab40bf927c6a1ec540c,
+        type: 3}
+      propertyPath: m_TagString
+      value: Untagged
+      objectReference: {fileID: 0}
+    - target: {fileID: 4845971000943818105, guid: f63f6ac46d3b8ab40bf927c6a1ec540c,
+        type: 3}
+      propertyPath: m_IsTrigger
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4845971001325249073, guid: f63f6ac46d3b8ab40bf927c6a1ec540c,
+        type: 3}
+      propertyPath: m_TagString
+      value: Untagged
+      objectReference: {fileID: 0}
+    - target: {fileID: 4845971001325249076, guid: f63f6ac46d3b8ab40bf927c6a1ec540c,
+        type: 3}
+      propertyPath: m_IsTrigger
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4845971001327157977, guid: f63f6ac46d3b8ab40bf927c6a1ec540c,
+        type: 3}
+      propertyPath: m_IsTrigger
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4845971001327158050, guid: f63f6ac46d3b8ab40bf927c6a1ec540c,
+        type: 3}
+      propertyPath: m_TagString
+      value: Untagged
+      objectReference: {fileID: 0}
     - target: {fileID: 4845971001588102145, guid: f63f6ac46d3b8ab40bf927c6a1ec540c,
         type: 3}
       propertyPath: m_Mass
-      value: 100
+      value: 20
       objectReference: {fileID: 0}
+    - target: {fileID: 4845971001588102146, guid: f63f6ac46d3b8ab40bf927c6a1ec540c,
+        type: 3}
+      propertyPath: m_Radius
+      value: 0.767628
+      objectReference: {fileID: 0}
+    - target: {fileID: 4845971001588102146, guid: f63f6ac46d3b8ab40bf927c6a1ec540c,
+        type: 3}
+      propertyPath: m_Center.z
+      value: 0.267628
+      objectReference: {fileID: 0}
+    - target: {fileID: 4845971001588102146, guid: f63f6ac46d3b8ab40bf927c6a1ec540c,
+        type: 3}
+      propertyPath: m_IsTrigger
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4845971001588102158, guid: f63f6ac46d3b8ab40bf927c6a1ec540c,
+        type: 3}
+      propertyPath: m_TagString
+      value: Untagged
+      objectReference: {fileID: 0}
+    - target: {fileID: 4845971001715176648, guid: f63f6ac46d3b8ab40bf927c6a1ec540c,
+        type: 3}
+      propertyPath: m_Model
+      value: 
+      objectReference: {fileID: 5022602860645237092, guid: 6cf85c283ad652049bbee2bd9c48cc03,
+        type: 3}
     - target: {fileID: 4845971001715176648, guid: f63f6ac46d3b8ab40bf927c6a1ec540c,
         type: 3}
       propertyPath: m_BehaviorName
       value: CrawlPusher
+      objectReference: {fileID: 0}
+    - target: {fileID: 4845971001715176648, guid: f63f6ac46d3b8ab40bf927c6a1ec540c,
+        type: 3}
+      propertyPath: m_BrainParameters.VectorObservationSize
+      value: 36
       objectReference: {fileID: 0}
     - target: {fileID: 4845971001715176649, guid: f63f6ac46d3b8ab40bf927c6a1ec540c,
         type: 3}
@@ -698,6 +780,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: CrawlPusher
+      objectReference: {fileID: 0}
+    - target: {fileID: 4845971001715176661, guid: f63f6ac46d3b8ab40bf927c6a1ec540c,
+        type: 3}
+      propertyPath: m_TagString
+      value: agent
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 4845971001715176649, guid: f63f6ac46d3b8ab40bf927c6a1ec540c, type: 3}

@@ -8,7 +8,6 @@ using Random = UnityEngine.Random;
 [RequireComponent(typeof(JointDriveController))] // Required to set joint forces
 public class CrawlPusherAgent : Agent
 {
-
     [Header("Walk Speed")]
     [Range(0.1f, m_maxWalkingSpeed)]
     [SerializeField]
@@ -78,21 +77,28 @@ public class CrawlPusherAgent : Agent
     //The block to be pushed to the goal.
     [Header("Block to Push Towards Goal")]
     public Transform blockPrefab;
-    private Transform m_Block; //Block the agent will push towards during training.
-    private Vector3 blockStartPos;
+    public Transform m_Block; //Block the agent will push
+    //private Vector3 blockStartPos;
+    //private Vector3 prevBlockPos;
+    //private Vector3 agentStartPos;
+    //private float prevDotAlignment;
 
     public override void Initialize()
     {
         SpawnTarget(TargetPrefab, transform.position); //spawn target
-        m_Block = Instantiate(blockPrefab, GetRandomSpawnPos(), Quaternion.identity, transform.parent); //spawn block
-        blockStartPos = m_Block.transform.position;
+        SpawnBlock(blockPrefab, transform.position); //spawn block
+        //blockStartPos = m_Block.transform.position;
+        //prevBlockPos = blockStartPos;
+        //prevDotAlignment = Vector3.Dot(cubeForward, blockForward);
 
-        m_OrientationCube = GetComponentInChildren<OrientationCubeController>();
-        m_DirectionIndicator = GetComponentInChildren<DirectionIndicator>();
+        m_OrientationCube = GetComponentsInChildren<OrientationCubeController>()[0];
+        m_DirectionIndicator = GetComponentsInChildren<DirectionIndicator>()[0];
         m_JdController = GetComponent<JointDriveController>();
 
-        m_OrientationCubeBlock = GetComponentInChildren<OrientationCubeController>();
-        m_DirectionIndicatorBlock = GetComponentInChildren<DirectionIndicator>();
+        m_OrientationCubeBlock = GetComponentsInChildren<OrientationCubeController>()[1];
+        m_DirectionIndicatorBlock = GetComponentsInChildren<DirectionIndicator>()[1];
+
+        //agentStartPos = m_OrientationCubeBlock.transform.position;
 
         //Setup each body part
         m_JdController.SetupBodyPart(body);
@@ -137,6 +143,16 @@ public class CrawlPusherAgent : Agent
     }
 
     /// <summary>
+    /// Spawns a block prefab at pos
+    /// </summary>
+    /// <param name="prefab"></param>
+    /// <param name="pos"></param>
+    void SpawnBlock(Transform prefab, Vector3 pos)
+    {
+        m_Block = Instantiate(prefab, pos, Quaternion.identity, transform.parent);
+    }
+
+    /// <summary>
     /// Loop over body parts and reset them to initial conditions.
     /// </summary>
     public override void OnEpisodeBegin()
@@ -154,8 +170,10 @@ public class CrawlPusherAgent : Agent
         //Set our goal walking speed
         TargetWalkingSpeed = Random.Range(0.1f, m_maxWalkingSpeed);
 
-        m_Block.transform.position = GetRandomSpawnPos();
-        blockStartPos = m_Block.transform.position;
+        //blockStartPos = m_Block.transform.position;
+        //prevBlockPos = blockStartPos;
+        //agentStartPos = m_OrientationCubeBlock.transform.position;
+        transform.tag = "agent";
     }
 
     /// <summary>
@@ -200,8 +218,8 @@ public class CrawlPusherAgent : Agent
         //Add pos of block relative to orientation cube
         sensor.AddObservation(m_OrientationCubeBlock.transform.InverseTransformPoint(m_Block.transform.position));
 
-        //Add pos of target relative to block
-        sensor.AddObservation(m_Block.transform.InverseTransformPoint(m_Target.transform.position));
+        //Add status of having picked up block
+        sensor.AddObservation(transform.CompareTag("block"));
 
         RaycastHit hit;
         float maxRaycastDist = 10;
@@ -244,6 +262,9 @@ public class CrawlPusherAgent : Agent
         bpDict[leg1Lower].SetJointStrength(continuousActions[++i]);
         bpDict[leg2Lower].SetJointStrength(continuousActions[++i]);
         bpDict[leg3Lower].SetJointStrength(continuousActions[++i]);
+
+        // Penalty given each step to encourage agent to finish task quickly.
+        //AddReward(-1f / MaxStep);
     }
 
     void FixedUpdate()
@@ -272,17 +293,53 @@ public class CrawlPusherAgent : Agent
         var cubeForward = m_OrientationCube.transform.forward;
         //Direction to block
         var blockForward = m_OrientationCubeBlock.transform.forward;
+        
+        //Reward agent for getting closer to block
+        //var agentDistToBlockReward = Mathf.Clamp((1f - (Vector3.Distance(m_Block.transform.position, m_OrientationCubeBlock.transform.position) / Vector3.Distance(blockStartPos, agentStartPos))), 0f, 1f);
 
-        //Reward agent for proximity to block
-        var agentDistToBlockReward = Mathf.Clamp(8f - Vector3.Distance(m_Block.transform.position, m_OrientationCube.transform.position), 0f, 1f);
+        //Calculate how aligned the to block and to goal vectors are
+        //This signifies if the agent is in a good position to push the block to the goal
+        //var dotAlignment = Vector3.Dot(cubeForward, blockForward);
 
-        //Reward agent for alignment with block-to-target vector
-        var directionCorrection = (Vector3.Dot(cubeForward, blockForward) + 1) * .5F;
+        //Reward agent for being in a position suitable for pushing block to goal
+        //var dotAlignmentReward = Mathf.Clamp(dotAlignment, .1f, 0.75f) / 0.75f;
 
-        //Reward  agent for moving block to goal with punishment for wrong way
-        var blockDistToTargetReward = Mathf.Clamp(2f*(1f - (Vector3.Distance(m_Block.transform.position, m_Target.transform.position) / Vector3.Distance(blockStartPos, m_Target.transform.position))), 0f, 2f);
+        //var blockDistToTarget = Vector3.Distance(m_Block.transform.position, m_Target.transform.position);
+        //The block's velocity towards the goal for this cycle
+        //var blockVelocityRelativeToTarget = (prevBlockDistToTarget - blockDistToTarget) / Time.deltaTime;
 
-        AddReward(directionCorrection * (agentDistToBlockReward + blockDistToTargetReward));
+        //var blockDistanceMoved = Vector3.Distance(prevBlockPos, m_Block.transform.position) / Time.deltaTime;
+        //var blockMoveReward = Mathf.Clamp(100f*blockDistanceMoved, 0f, .5f);
+        //prevBlockPos = m_Block.transform.position;
+        //var blockMoveReward = Mathf.Clamp(Vector3.Distance(m_Block.transform.position, blockStartPos), 0f, .5f) - .25f;
+
+        //Reward agent for moving block towards goal
+        //var blockVelocitytToTargetReward = Mathf.Clamp(Mathf.Pow(blockVelocityRelativeToTarget, 2), 0f, 0.5f);
+
+        // a. Match target speed
+        //This reward will approach 1 if it matches perfectly and approach zero as it deviates
+        var matchSpeedReward = 0f;
+
+        // b. Rotation alignment with target direction.
+        //This reward will approach 1 if it faces the target direction perfectly and approach zero as it deviates
+        var lookAtTargetReward = 0f;
+
+        var holdingBlockReward = 0f;
+
+        //Heading towards block
+        if (transform.CompareTag("agent")){
+            matchSpeedReward = GetMatchingVelocityReward(blockForward * TargetWalkingSpeed, GetAvgVelocity());
+            lookAtTargetReward = (Vector3.Dot(blockForward, body.forward) + 1) * .5F;
+            holdingBlockReward = 0f;
+        } 
+        //Heading towards goal
+        else {
+            matchSpeedReward = GetMatchingVelocityReward(cubeForward * TargetWalkingSpeed, GetAvgVelocity());
+            lookAtTargetReward = (Vector3.Dot(cubeForward, body.forward) + 1) * .5F;
+            holdingBlockReward = .2f;
+        }
+        AddReward(matchSpeedReward * lookAtTargetReward + holdingBlockReward);
+        if(transform.parent.name == "CrawlPushPlatform") Debug.Log("tag: " + transform.tag + " Speed R: " + matchSpeedReward + " Look R: " + lookAtTargetReward + " Holding R: " + holdingBlockReward);
     }
 
     /// <summary>
@@ -296,7 +353,7 @@ public class CrawlPusherAgent : Agent
         {
             m_DirectionIndicator.MatchOrientation(m_OrientationCube.transform);
         }
-        //Orientation towards block to push
+        //Orientation towards block
         m_OrientationCubeBlock.UpdateOrientation(body, m_Block);
         if (m_DirectionIndicatorBlock)
         {
@@ -344,7 +401,8 @@ public class CrawlPusherAgent : Agent
     /// </summary>
     public void TouchedTarget()
     {
-        AddReward(1000f);
-        blockStartPos = m_Block.transform.position;
+        if(transform.CompareTag("block")) AddReward(10f);
+
+        EndEpisode();
     }
 }
