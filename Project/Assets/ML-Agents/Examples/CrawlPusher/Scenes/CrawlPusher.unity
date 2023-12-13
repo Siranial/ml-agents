@@ -1040,6 +1040,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3421283062001101771, guid: 8928f12cdd1b06d45b2755fb6fefe00b,
+        type: 3}
+      propertyPath: m_BrainParameters.VectorObservationSize
+      value: 42
+      objectReference: {fileID: 0}
     - target: {fileID: 3421283062001101782, guid: 8928f12cdd1b06d45b2755fb6fefe00b,
         type: 3}
       propertyPath: m_Name
@@ -2175,6 +2180,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6942692819682134978, guid: 8928f12cdd1b06d45b2755fb6fefe00b,
         type: 3}
+      propertyPath: MaxStep
+      value: 10000
+      objectReference: {fileID: 0}
+    - target: {fileID: 6942692819682134978, guid: 8928f12cdd1b06d45b2755fb6fefe00b,
+        type: 3}
       propertyPath: TargetPrefab
       value: 
       objectReference: {fileID: 3839136118347789758, guid: f044fe07d93d0a64a8b6c8175c5c25c3,
@@ -2201,17 +2211,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 3421283062001101770, guid: 0058b366f9d6d44a3ba35beb06b0174b,
-        type: 3}
-      propertyPath: TargetPrefab
-      value: 
-      objectReference: {fileID: 3839136118347789758, guid: 46734abd0de454192b407379c6a4ab8d,
-        type: 3}
-    - target: {fileID: 3421283062001101770, guid: 0058b366f9d6d44a3ba35beb06b0174b,
-        type: 3}
-      propertyPath: typeOfCrawler
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 3421283061859478285, guid: 8928f12cdd1b06d45b2755fb6fefe00b,
         type: 3}
       propertyPath: m_Name
@@ -2298,6 +2297,17 @@ PrefabInstance:
       propertyPath: block_transform
       value: 
       objectReference: {fileID: 160785934}
+    - target: {fileID: 3421283062001101770, guid: 0058b366f9d6d44a3ba35beb06b0174b,
+        type: 3}
+      propertyPath: TargetPrefab
+      value: 
+      objectReference: {fileID: 3839136118347789758, guid: 46734abd0de454192b407379c6a4ab8d,
+        type: 3}
+    - target: {fileID: 3421283062001101770, guid: 0058b366f9d6d44a3ba35beb06b0174b,
+        type: 3}
+      propertyPath: typeOfCrawler
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 3884752838920561168, guid: 8928f12cdd1b06d45b2755fb6fefe00b, type: 3}
     m_RemovedGameObjects: []

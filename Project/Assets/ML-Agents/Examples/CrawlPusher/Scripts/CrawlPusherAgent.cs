@@ -51,14 +51,20 @@ public class CrawlPusherAgent : Agent
     //This will be used as a stabilized model space reference point for observations
     //Because ragdolls can move erratically during training, using a stabilized reference transform improves learning
     OrientationCubeController m_OrientationCube;
+    OrientationCubeController m_OrientationCube_Block;
 
     //The indicator graphic gameobject that points towards the target
     DirectionIndicator m_DirectionIndicator;
+    DirectionIndicator m_DirectionIndicator_Block;
     JointDriveController m_JdController;
 
     [Header("Foot Grounded Visualization")]
     [Space(10)]
     public bool useFootGroundedVisualization;
+
+    [HideInInspector]
+    public bool attached;
+    private Transform orignal_parent;
 
     public MeshRenderer foot0;
     public MeshRenderer foot1;
@@ -85,13 +91,31 @@ public class CrawlPusherAgent : Agent
         SpawnTarget(TargetPrefab, transform.position);
         goalDetect = m_Target.GetComponent<TargetController_CrawlerPusher>();
         goalDetect.agent = this;
+        orignal_parent = block_transform.parent;
+        
         //spawn target
         //Instantiate(block, GetRandomSpawnPos(), Quaternion.identity); //spawn block
         //block_transform.localPosition = GetRandomSpawnPos();
         //ResetBlock(); //Reset block
+        OrientationCubeController[] allOrientationCubes = GetComponentsInChildren<OrientationCubeController>();
+        int count = allOrientationCubes.Length;
+        m_OrientationCube = allOrientationCubes[0];
+        if (count > 1)
+        {
+            Debug.Log("Number of OrientationCubeController components: " + count);
+            m_OrientationCube_Block = allOrientationCubes[1];
+        }
 
-        m_OrientationCube = GetComponentInChildren<OrientationCubeController>();
-        m_DirectionIndicator = GetComponentInChildren<DirectionIndicator>();
+        DirectionIndicator[] allDirectionIndicators = GetComponentsInChildren<DirectionIndicator>();
+        count = allDirectionIndicators.Length;
+        m_DirectionIndicator = allDirectionIndicators[0];
+        if (count > 1)
+        {
+            Debug.Log("Number of OrientationCubeController components: " + count);
+            m_DirectionIndicator_Block = allDirectionIndicators[1];
+        }
+
+        //m_DirectionIndicator = GetComponentInChildren<DirectionIndicator>();
         m_JdController = GetComponent<JointDriveController>();
 
         //Setup each body part
@@ -142,7 +166,10 @@ public class CrawlPusherAgent : Agent
     /// </summary>
     public override void OnEpisodeBegin()
     {
+        //block_transform.parent = orignal_parent;
         block_transform.localPosition = GetRandomSpawnPos();
+        attached = false;
+        
         //block_transform.localPosition = m_Target.transform.localPosition;
         foreach (var bodyPart in m_JdController.bodyPartsDict.Values)
         {
@@ -181,6 +208,7 @@ public class CrawlPusherAgent : Agent
     public override void CollectObservations(VectorSensor sensor)
     {
         var cubeForward = m_OrientationCube.transform.forward;
+        var blockForward = m_OrientationCube_Block.transform.forward;
 
         //velocity we want to match
         var velGoal = cubeForward * TargetWalkingSpeed;
@@ -196,14 +224,20 @@ public class CrawlPusherAgent : Agent
         //rotation delta
         sensor.AddObservation(Quaternion.FromToRotation(body.forward, cubeForward));
 
+        //rotation delta (block)
+        sensor.AddObservation(Quaternion.FromToRotation(body.forward, blockForward));
+
+
         //Add pos of target relative to orientation cube
         sensor.AddObservation(m_OrientationCube.transform.InverseTransformPoint(m_Target.transform.position));
 
         //Add pos of block relative to orientation cube
-        sensor.AddObservation(m_OrientationCube.transform.InverseTransformPoint(block_transform.position));
+        sensor.AddObservation(m_OrientationCube_Block.transform.InverseTransformPoint(block_transform.position));
 
         //Add pos of target relative to block
-        sensor.AddObservation(block_transform.InverseTransformPoint(m_Target.transform.position));
+        //sensor.AddObservation(block_transform.InverseTransformPoint(m_Target.transform.position));
+
+        sensor.AddObservation(attached);
 
         RaycastHit hit;
         float maxRaycastDist = 10;
@@ -246,6 +280,8 @@ public class CrawlPusherAgent : Agent
         bpDict[leg1Lower].SetJointStrength(continuousActions[++i]);
         bpDict[leg2Lower].SetJointStrength(continuousActions[++i]);
         bpDict[leg3Lower].SetJointStrength(continuousActions[++i]);
+
+        //AddReward(-1f);
     }
 
     void FixedUpdate()
@@ -271,17 +307,46 @@ public class CrawlPusherAgent : Agent
         }
 
         var cubeForward = m_OrientationCube.transform.forward;
+        var blockForward = m_OrientationCube_Block.transform.forward;
+
+        if(!attached && Vector3.Distance(m_OrientationCube.transform.position, block_transform.position) < 5.0f)
+        {
+            attached = true;
+            AttachBlock();
+        }
+        if(attached && block_transform.localPosition.y <= this.transform.localPosition.y + body.transform.localPosition.y)
+        {
+            EndEpisode();
+        }
+
+        
 
         // Set reward for this step according to mixture of the following elements.
         // a. Match target speed
         //This reward will approach 1 if it matches perfectly and approach zero as it deviates
         var matchSpeedReward = GetMatchingVelocityReward(cubeForward * TargetWalkingSpeed, GetAvgVelocity());
+        var matchSpeedReward_block = GetMatchingVelocityReward(blockForward * TargetWalkingSpeed, GetAvgVelocity());
 
         // b. Rotation alignment with target direction.
         //This reward will approach 1 if it faces the target direction perfectly and approach zero as it deviates
         var lookAtTargetReward = (Vector3.Dot(cubeForward, body.forward) + 1) * .5F;
 
-        AddReward(matchSpeedReward * lookAtTargetReward);
+        //Rotation alignment with block direction.
+        //This reward will approach 1 if it faces the block direction perfectly and approach zero as it deviates
+        var lookAtBlockReward = (Vector3.Dot(blockForward, body.forward) + 1) * .5F;
+
+        var approachBlockReward = GetApproachingBlockReward();
+        var blockToTargetReward = GetBlockToTargetReward();
+
+        if (attached)
+        {
+            AddReward(matchSpeedReward * lookAtTargetReward);
+        }
+        else
+        {
+            AddReward(matchSpeedReward_block * lookAtBlockReward * approachBlockReward);
+        }
+        
     }
 
     /// <summary>
@@ -291,10 +356,17 @@ public class CrawlPusherAgent : Agent
     {
         /// Point to the block instead of m_Target
         m_OrientationCube.UpdateOrientation(body, m_Target.transform);
+        m_OrientationCube_Block.UpdateOrientation(body, block_transform);
         if (m_DirectionIndicator)
         {
             m_DirectionIndicator.MatchOrientation(m_OrientationCube.transform);
+            m_DirectionIndicator_Block.MatchOrientation(m_OrientationCube_Block.transform);
         }
+    }
+
+    void AttachBlock()
+    {
+        block_transform.localPosition = this.transform.localPosition + body.transform.localPosition + new Vector3(0.0f, 1.5f, 0.0f) ;
     }
 
     /// <summary>
@@ -332,8 +404,45 @@ public class CrawlPusherAgent : Agent
         return Mathf.Pow(1 - Mathf.Pow(velDeltaMagnitude / TargetWalkingSpeed, 2), 2);
     }
 
+    public float GetApproachingBlockReward()
+    {
+        // Define a maximum distance for calculation
+        float maxDistance = 80.0f; // This should be set according to your environment
+
+        // Calculate the current distance between the agent and the block
+        float currentDistance = Vector3.Distance(m_OrientationCube.transform.position, block_transform.position);
+
+        // Normalize the distance
+        float normalizedDistance = Mathf.Clamp(currentDistance, 0, maxDistance) / maxDistance;
+
+        // Calculate the reward using a declining sigmoid-shaped curve
+        // This reward will approach 1 as the agent gets closer to the block and approach 0 as it moves away
+        float reward = Mathf.Pow(1 - Mathf.Pow(normalizedDistance, 2), 2);
+
+        return reward;
+    }
+
+    public float GetBlockToTargetReward()
+    {
+        // Define a maximum distance for calculation
+        float maxDistance = 80.0f; // This should be set according to your environment
+
+        // Calculate the current distance between the agent and the block
+        float currentDistance = Vector3.Distance(block_transform.position, m_Target.transform.position);
+
+        // Normalize the distance
+        float normalizedDistance = Mathf.Clamp(currentDistance, 0, maxDistance) / maxDistance;
+
+        // Calculate the reward using a declining sigmoid-shaped curve
+        // This reward will approach 1 as the agent gets closer to the block and approach 0 as it moves away
+        float reward = Mathf.Pow(1 - Mathf.Pow(normalizedDistance, 2), 2);
+
+        return reward;
+    }
+
     public void Missin_Complete()
     {
+        AddReward(5f * MaxStep);
         EndEpisode();
     }
 

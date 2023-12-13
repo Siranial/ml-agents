@@ -14,7 +14,7 @@ using UnityEngine.Events;
     {
 
         [Header("Collider Tag To Detect")]
-        public string tagToDetect = "block"; //collider tag to detect
+        public string tagToDetect = "agent"; //collider tag to detect
 
         [Header("Target Placement")]
         public float spawnRadius; //The radius in which a target can be randomly spawned.
@@ -53,7 +53,7 @@ using UnityEngine.Events;
         void OnEnable()
         {
             m_startingPos = transform.position;
-            if (respawnIfTouched)
+        if (respawnIfTouched)
             {
                 MoveTargetToRandomPosition();
             }
@@ -86,10 +86,13 @@ using UnityEngine.Events;
             if (col.transform.CompareTag(tagToDetect))
             {
                 onCollisionEnterEvent.Invoke(col);
-                if (respawnIfTouched)
+                if (agent.attached)
                 {
-                    MoveTargetToRandomPosition();
-                    agent.Missin_Complete();
+                    if (respawnIfTouched)
+                    {
+                        MoveTargetToRandomPosition();
+                        agent.Missin_Complete();
+                    }
                 }
             }
         }
