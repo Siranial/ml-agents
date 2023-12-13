@@ -309,15 +309,20 @@ public class CrawlPusherAgent : Agent
         var cubeForward = m_OrientationCube.transform.forward;
         var blockForward = m_OrientationCube_Block.transform.forward;
 
+        if (attached)
+        {
+            AttachBlock();
+        }
+
         if(!attached && Vector3.Distance(m_OrientationCube.transform.position, block_transform.position) < 5.0f)
         {
             attached = true;
             AttachBlock();
         }
-        if(attached && block_transform.localPosition.y <= this.transform.localPosition.y + body.transform.localPosition.y)
-        {
-            EndEpisode();
-        }
+        //if(attached && block_transform.localPosition.y <= this.transform.localPosition.y + body.transform.localPosition.y)
+        //{
+        //    EndEpisode();
+        //}
 
         
 
@@ -344,7 +349,7 @@ public class CrawlPusherAgent : Agent
         }
         else
         {
-            AddReward(matchSpeedReward_block * lookAtBlockReward * approachBlockReward);
+            AddReward(matchSpeedReward_block * lookAtBlockReward);
         }
         
     }
@@ -366,7 +371,7 @@ public class CrawlPusherAgent : Agent
 
     void AttachBlock()
     {
-        block_transform.localPosition = this.transform.localPosition + body.transform.localPosition + new Vector3(0.0f, 1.5f, 0.0f) ;
+        block_transform.localPosition = this.transform.localPosition + body.transform.localPosition + new Vector3(0.0f, 1.0f, 0.0f) ;
     }
 
     /// <summary>
