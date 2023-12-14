@@ -291,8 +291,28 @@ public class CrawlPusherAgent : Agent
 
         //Direction to goal
         var cubeForward = m_OrientationCube.transform.forward;
+<<<<<<< Updated upstream
         //Direction to block
         var blockForward = m_OrientationCubeBlock.transform.forward;
+=======
+        var blockForward = m_OrientationCube_Block.transform.forward;
+
+        //if (attached)
+        //{
+        //    AttachBlock();
+        //}
+
+        if(!attached && Vector3.Distance(m_OrientationCube.transform.position, block_transform.position) < 5.0f)
+        {
+            attached = true;
+            AttachBlock();
+        }
+        if(attached && block_transform.localPosition.y <= this.transform.localPosition.y + body.transform.localPosition.y)
+        {
+            EndEpisode();
+        }
+
+>>>>>>> Stashed changes
         
         //Reward agent for getting closer to block
         //var agentDistToBlockReward = Mathf.Clamp((1f - (Vector3.Distance(m_Block.transform.position, m_OrientationCubeBlock.transform.position) / Vector3.Distance(blockStartPos, agentStartPos))), 0f, 1f);
@@ -353,12 +373,20 @@ public class CrawlPusherAgent : Agent
         {
             m_DirectionIndicator.MatchOrientation(m_OrientationCube.transform);
         }
+<<<<<<< Updated upstream
         //Orientation towards block
         m_OrientationCubeBlock.UpdateOrientation(body, m_Block);
         if (m_DirectionIndicatorBlock)
         {
             m_DirectionIndicatorBlock.MatchOrientation(m_OrientationCubeBlock.transform);
         }
+=======
+    }
+
+    void AttachBlock()
+    {
+        block_transform.localPosition = this.transform.localPosition + body.transform.localPosition + new Vector3(0.0f, 1.5f, 0.0f) ;
+>>>>>>> Stashed changes
     }
 
     /// <summary>
@@ -396,6 +424,51 @@ public class CrawlPusherAgent : Agent
         return Mathf.Pow(1 - Mathf.Pow(velDeltaMagnitude / TargetWalkingSpeed, 2), 2);
     }
 
+<<<<<<< Updated upstream
+=======
+    public float GetApproachingBlockReward()
+    {
+        // Define a maximum distance for calculation
+        float maxDistance = 80.0f; // This should be set according to your environment
+
+        // Calculate the current distance between the agent and the block
+        float currentDistance = Vector3.Distance(m_OrientationCube.transform.position, block_transform.position);
+
+        // Normalize the distance
+        float normalizedDistance = Mathf.Clamp(currentDistance, 0, maxDistance) / maxDistance;
+
+        // Calculate the reward using a declining sigmoid-shaped curve
+        // This reward will approach 1 as the agent gets closer to the block and approach 0 as it moves away
+        float reward = Mathf.Pow(1 - Mathf.Pow(normalizedDistance, 2), 2);
+
+        return reward;
+    }
+
+    public float GetBlockToTargetReward()
+    {
+        // Define a maximum distance for calculation
+        float maxDistance = 80.0f; // This should be set according to your environment
+
+        // Calculate the current distance between the agent and the block
+        float currentDistance = Vector3.Distance(block_transform.position, m_Target.transform.position);
+
+        // Normalize the distance
+        float normalizedDistance = Mathf.Clamp(currentDistance, 0, maxDistance) / maxDistance;
+
+        // Calculate the reward using a declining sigmoid-shaped curve
+        // This reward will approach 1 as the agent gets closer to the block and approach 0 as it moves away
+        float reward = Mathf.Pow(1 - Mathf.Pow(normalizedDistance, 2), 2);
+
+        return reward;
+    }
+
+    public void Missin_Complete()
+    {
+        //AddReward(5f * MaxStep);
+        EndEpisode();
+    }
+
+>>>>>>> Stashed changes
     /// <summary>
     /// Agent got block to target
     /// </summary>
